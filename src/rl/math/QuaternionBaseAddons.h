@@ -107,18 +107,18 @@ static Quaternion<Scalar> Random(const MatrixBase<OtherDerived>& rand)
 	);
 }
 
-template<typename OtherDerived>
-Vector3
-angularVelocity(const QuaternionBase<OtherDerived>& qd) const
-{
-	return ((qd * this->derived().conjugate()) * Scalar(2)).vec();
-}
-
 template<typename OtherDerived1, typename OtherDerived2>
 Vector3
 angularAcceleration(const QuaternionBase<OtherDerived1>& qd, const QuaternionBase<OtherDerived2>& qdd) const
 {
 	return ((qdd * this->derived().conjugate() + qd * qd.conjugate()) * Scalar(2)).vec();
+}
+
+template<typename OtherDerived>
+Vector3
+angularVelocity(const QuaternionBase<OtherDerived>& qd) const
+{
+	return ((qd * this->derived().conjugate()) * Scalar(2)).vec();
 }
 
 Quaternion<Scalar>
@@ -257,8 +257,17 @@ template<typename OtherDerived>
 Quaternion<Scalar>
 slerpFirstDerivative(const Scalar& t, const QuaternionBase<OtherDerived>& other) const
 {
-	Quaternion<Scalar> tmp = this->derived().dot(other) < Scalar(0) ? this->derived().conjugate() * -other : this->derived().conjugate() * other;
+	Quaternion<Scalar> tmp = this->derived().conjugate() * other;
 	return this->derived() * tmp.pow(t) * tmp.log();
+}
+
+template<typename OtherDerived>
+Quaternion<Scalar>
+slerpSecondDerivative(const Scalar& t, const QuaternionBase<OtherDerived>& other) const
+{
+	Quaternion<Scalar> tmp = this->derived().conjugate() * other;
+	Quaternion<Scalar> tmp2 = tmp.log();
+	return this->derived() * tmp.pow(t) * tmp2 * tmp2;
 }
 
 template<typename OtherDerived1, typename OtherDerived2, typename OtherDerived3>
@@ -281,7 +290,7 @@ squadFirstDerivative(const Scalar& t, const QuaternionBase<OtherDerived1>& a, co
 {
 	Quaternion<Scalar> u = this->derived().slerp(t, other);
 	Quaternion<Scalar> v = a.slerp(t, b);
-	Quaternion<Scalar> w = u.inverse() * v;
+	Quaternion<Scalar> w = u.conjugate() * v;
 	Quaternion<Scalar> ud = u * (this->derived().conjugate() * other).log();
 	Quaternion<Scalar> vd = v * (a.conjugate() * b).log();
 	Quaternion<Scalar> wd = u.conjugate() * vd - u.pow(Scalar(-2)) * ud * v;

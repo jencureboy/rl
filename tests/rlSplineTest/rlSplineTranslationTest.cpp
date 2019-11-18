@@ -32,7 +32,7 @@ void printPoly(const rl::math::Polynomial<rl::math::ArrayX>& p)
 {
 	for (int n = p.degree(); n >= 0; --n)
 	{
-		if (p.coefficient(n).matrix().squaredNorm() != 0)
+		if (p.coefficient(n).matrix().squaredNorm() > 0)
 		{
 			std::cout << p.coefficient(n) << "*x^" << n << " ";
 		}
@@ -74,6 +74,7 @@ main(int argc, char** argv)
 	for (std::size_t degree = 5; degree < 15; ++degree)
 	{
 		rl::math::Polynomial<rl::math::ArrayX> p(degree);
+		p.upper() = 1;
 		
 		for (std::size_t n = 0; n < p.degree() + 1; ++n)
 		{

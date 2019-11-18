@@ -531,6 +531,12 @@ namespace rl
 			return dynamic_cast<World*>(this->tree[this->root].get());
 		}
 		
+		const ::rl::math::Vector3&
+		Model::getWorldGravity() const
+		{
+			return dynamic_cast<World*>(this->tree[this->root].get())->getGravity();
+		}
+		
 		::Eigen::Matrix<bool, ::Eigen::Dynamic, 1>
 		Model::getWraparounds() const
 		{
@@ -700,6 +706,12 @@ namespace rl
 			}
 		}
 		
+		void
+		Model::setWorldGravity(const ::rl::math::Vector3& gravity)
+		{
+			dynamic_cast<World*>(this->tree[this->root].get())->setGravity(gravity);
+		}
+		
 		::rl::math::Transform&
 		Model::tool(const ::std::size_t& i)
 		{
@@ -772,16 +784,11 @@ namespace rl
 				}
 			}
 			
-			this->gammaPosition.resize(this->getDofPosition(), this->getDofPosition());
-			this->gammaPosition.setIdentity();
-			this->gammaVelocity.resize(this->getDof(), this->getDof());
-			this->gammaVelocity.setIdentity();
-			this->home.resize(this->getDofPosition());
-			this->home.setZero();
-			this->invGammaPosition.resize(this->getDofPosition(), this->getDofPosition());
-			this->invGammaPosition.setIdentity();
-			this->invGammaVelocity.resize(this->getDof(), this->getDof());
-			this->invGammaVelocity.setIdentity();
+			this->gammaPosition = ::rl::math::Matrix::Identity(this->getDofPosition(), this->getDofPosition());
+			this->gammaVelocity = ::rl::math::Matrix::Identity(this->getDof(), this->getDof());
+			this->home = ::rl::math::Vector::Zero(this->getDofPosition());
+			this->invGammaPosition = ::rl::math::Matrix::Identity(this->getDofPosition(), this->getDofPosition());
+			this->invGammaVelocity = ::rl::math::Matrix::Identity(this->getDof(), this->getDof());
 		}
 		
 		::rl::math::Transform&

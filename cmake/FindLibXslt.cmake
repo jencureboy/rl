@@ -6,9 +6,7 @@ foreach(PATH ${CMAKE_PREFIX_PATH})
 	file(
 		GLOB
 		HINTS
-		${PATH}/${CMAKE_INSTALL_INCLUDEDIR}/libxslt
 		${PATH}/${CMAKE_INSTALL_INCLUDEDIR}
-		${PATH}/libxslt*/${CMAKE_INSTALL_INCLUDEDIR}/libxslt
 		${PATH}/libxslt*/${CMAKE_INSTALL_INCLUDEDIR}
 	)
 	list(APPEND LIBXSLT_INCLUDE_HINTS ${HINTS})
@@ -17,17 +15,14 @@ endforeach()
 list(
 	APPEND
 	LIBXSLT_INCLUDE_HINTS
-	$ENV{LIBXSLT_DIR}/${CMAKE_INSTALL_INCLUDEDIR}/libxslt
-	$ENV{LIBXSLT_DIR}/${CMAKE_INSTALL_INCLUDEDIR}
+	$ENV{LibXslt_DIR}/${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 foreach(PATH $ENV{CMAKE_PREFIX_PATH})
 	file(
 		GLOB
 		HINTS
-		${PATH}/${CMAKE_INSTALL_INCLUDEDIR}/libxslt
 		${PATH}/${CMAKE_INSTALL_INCLUDEDIR}
-		${PATH}/libxslt*/${CMAKE_INSTALL_INCLUDEDIR}/libxslt
 		${PATH}/libxslt*/${CMAKE_INSTALL_INCLUDEDIR}
 	)
 	list(APPEND LIBXSLT_INCLUDE_HINTS ${HINTS})
@@ -37,7 +32,6 @@ foreach(PATH $ENV{PATH})
 	file(
 		GLOB
 		HINTS
-		${PATH}/../${CMAKE_INSTALL_INCLUDEDIR}/libxslt
 		${PATH}/../${CMAKE_INSTALL_INCLUDEDIR}
 	)
 	list(APPEND LIBXSLT_INCLUDE_HINTS ${HINTS})
@@ -46,15 +40,10 @@ endforeach()
 file(
 	GLOB
 	LIBXSLT_INCLUDE_PATHS
-	$ENV{HOME}/include/libxslt
 	$ENV{HOME}/include
-	/usr/local/include/libxslt
 	/usr/local/include
-	/opt/local/include/libxslt
 	/opt/local/include
-	/usr/include/libxslt
 	/usr/include
-	${CMAKE_OSX_SYSROOT}/usr/include/libxslt
 	${CMAKE_OSX_SYSROOT}/usr/include
 )
 
@@ -63,6 +52,8 @@ find_path(
 	NAMES
 	libxslt/xslt.h
 	HINTS
+	${LIBXSLT_INCLUDE_HINTS}
+	PATHS
 	${LIBXSLT_INCLUDE_PATHS}
 )
 
@@ -81,7 +72,7 @@ endforeach()
 list(
 	APPEND
 	LIBXSLT_LIBRARY_HINTS
-	$ENV{LIBXSLT_DIR}/${CMAKE_INSTALL_LIBDIR}
+	$ENV{LibXslt_DIR}/${CMAKE_INSTALL_LIBDIR}
 )
 
 foreach(PATH $ENV{CMAKE_PREFIX_PATH})
@@ -117,6 +108,8 @@ find_library(
 	NAMES
 	libxsltd xsltd
 	HINTS
+	${LIBXSLT_LIBRARY_HINTS}
+	PATHS
 	${LIBXSLT_LIBRARY_PATHS}
 )
 find_library(
@@ -124,32 +117,34 @@ find_library(
 	NAMES
 	libxslt xslt
 	HINTS
+	${LIBXSLT_LIBRARY_HINTS}
+	PATHS
 	${LIBXSLT_LIBRARY_PATHS}
 )
 
 select_library_configurations(LIBXSLT)
 
 find_package_handle_standard_args(
-	libxslt
+	LibXslt
 	FOUND_VAR LIBXSLT_FOUND
 	REQUIRED_VARS LIBXSLT_INCLUDE_DIRS LIBXSLT_LIBRARIES
 )
 
-if(LIBXSLT_FOUND AND NOT TARGET libxslt::libxslt)
-	add_library(libxslt::libxslt UNKNOWN IMPORTED)
+if(LIBXSLT_FOUND AND NOT TARGET LibXslt::LibXslt)
+	add_library(LibXslt::LibXslt UNKNOWN IMPORTED)
 	
 	if(LIBXSLT_LIBRARY_RELEASE)
-		set_property(TARGET libxslt::libxslt APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
-		set_target_properties(libxslt::libxslt PROPERTIES IMPORTED_LOCATION_RELEASE "${LIBXSLT_LIBRARY_RELEASE}")
+		set_property(TARGET LibXslt::LibXslt APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
+		set_target_properties(LibXslt::LibXslt PROPERTIES IMPORTED_LOCATION_RELEASE "${LIBXSLT_LIBRARY_RELEASE}")
 	endif()
 	
 	if(LIBXSLT_LIBRARY_DEBUG)
-		set_property(TARGET libxslt::libxslt APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
-		set_target_properties(libxslt::libxslt PROPERTIES IMPORTED_LOCATION_DEBUG "${LIBXSLT_LIBRARY_DEBUG}")
+		set_property(TARGET LibXslt::LibXslt APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
+		set_target_properties(LibXslt::LibXslt PROPERTIES IMPORTED_LOCATION_DEBUG "${LIBXSLT_LIBRARY_DEBUG}")
 	endif()
 	
 	set_target_properties(
-		libxslt::libxslt PROPERTIES
+		LibXslt::LibXslt PROPERTIES
 		INTERFACE_INCLUDE_DIRECTORIES "${LIBXSLT_INCLUDE_DIRS}"
 	)
 endif()

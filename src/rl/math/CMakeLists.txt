@@ -4,6 +4,7 @@ find_package(Eigen3 REQUIRED)
 set(
 	BASE_HDRS
 	algorithm.h
+	AlignedBox.h
 	Array.h
 	Circular.h
 	CircularVector2.h
@@ -67,7 +68,7 @@ else()
 endif()
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-	target_compile_definitions(math INTERFACE -DEIGEN_DONT_ALIGN_STATICALLY)
+	target_compile_definitions(math INTERFACE EIGEN_DONT_ALIGN_STATICALLY)
 endif()
 
 if(NOT CMAKE_VERSION VERSION_LESS 3.8)

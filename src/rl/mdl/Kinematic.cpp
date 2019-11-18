@@ -102,8 +102,7 @@ namespace rl
 		void
 		Kinematic::calculateJacobianDerivative(::rl::math::Vector& Jdqd, const bool& inWorldFrame)
 		{
-			::rl::math::Vector tmp(this->getDof());
-			tmp.setZero(); // TODO
+			::rl::math::Vector tmp = ::rl::math::Vector::Zero(this->getDof());
 			
 			this->setAcceleration(tmp);
 			this->forwardVelocity();
@@ -113,8 +112,9 @@ namespace rl
 			{
 				if (inWorldFrame)
 				{
-					Jdqd.segment(j * 6, 3) = this->getOperationalPosition(j).linear() * this->getOperationalAcceleration(j).linear();
-					Jdqd.segment(j * 6 + 3, 3) = this->getOperationalPosition(j).linear() * this->getOperationalAcceleration(j).angular();
+					rl::math::Matrix33 wR = this->getOperationalVelocity(j).angular().cross33() * this->getOperationalPosition(j).linear();
+					Jdqd.segment(j * 6, 3) = this->getOperationalPosition(j).linear() * this->getOperationalAcceleration(j).linear() + wR * this->getOperationalVelocity(j).linear();
+					Jdqd.segment(j * 6 + 3, 3) = this->getOperationalPosition(j).linear() * this->getOperationalAcceleration(j).angular() + wR * this->getOperationalVelocity(j).angular();
 				}
 				else
 				{
@@ -234,9 +234,9 @@ namespace rl
 		{
 			Metric::update();
 			
-			this->invJ.resize(this->getDof(), 6 * this->getOperationalDof());
-			this->J.resize(6 * this->getOperationalDof(), this->getDof());
-			this->Jdqd.resize(6 * this->getOperationalDof());
+			this->invJ = ::rl::math::Matrix::Identity(this->getDof(), 6 * this->getOperationalDof());
+			this->J = ::rl::math::Matrix::Identity(6 * this->getOperationalDof(), this->getDof());
+			this->Jdqd = ::rl::math::Vector::Zero(6 * this->getOperationalDof());
 		}
 	}
 }

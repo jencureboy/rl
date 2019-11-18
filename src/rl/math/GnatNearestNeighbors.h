@@ -453,7 +453,16 @@ namespace rl
 			::std::vector<Neighbor> search(const Value& query, const ::std::size_t* k, const Distance* radius, const bool& sorted) const
 			{
 				::std::vector<Neighbor> neighbors;
-				neighbors.reserve(nullptr != k ? *k : this->values);
+				
+				if (this->empty())
+				{
+					return neighbors;
+				}
+				
+				if (nullptr != k)
+				{
+					neighbors.reserve(::std::min(*k, this->size()));
+				}
 				
 				::std::size_t checks = 0;
 				
@@ -462,7 +471,7 @@ namespace rl
 				
 				while (!branches.empty() && (!this->checks || checks < this->checks))
 				{
-					Branch branch = branches.front();
+					Branch branch = ::std::move(branches.front());
 					::std::pop_heap(branches.begin(), branches.end(), BranchCompare());
 					branches.pop_back();
 					
@@ -483,11 +492,6 @@ namespace rl
 				if (sorted)
 				{
 					::std::sort_heap(neighbors.begin(), neighbors.end(), NeighborCompare());
-				}
-				
-				if (nullptr == k)
-				{
-					neighbors.shrink_to_fit();
 				}
 				
 				return neighbors;
@@ -662,6 +666,10 @@ namespace rl
 						node.children[i].min[i] = Distance();
 					}
 				}
+				
+#ifdef _OPENMP
+				::std::size_t size = node.data.size();
+#endif
 				
 				node.data.clear();
 				node.data.shrink_to_fit();

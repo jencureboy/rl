@@ -35,19 +35,6 @@ namespace rl
 {
 	namespace math
 	{
-		template<typename T>
-		inline T cbrt(const T& arg)
-		{
-			if (arg < 0)
-			{
-				return -::std::pow(-arg, static_cast<T>(1) / static_cast<T>(3));
-			}
-			else
-			{
-				return ::std::pow(arg, static_cast<T>(1) / static_cast<T>(3));
-			}
-		}
-		
 		template<typename T, typename Compare>
 		inline const T& clamp(const T& v, const T& lo, const T& hi, Compare comp)
 		{

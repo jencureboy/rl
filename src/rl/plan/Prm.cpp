@@ -264,7 +264,7 @@ namespace rl
 			return true;
 		}
 		
-		Prm::AStarHeuristic::AStarHeuristic(Model* model, Graph& graph, Vertex& goal) :
+		Prm::AStarHeuristic::AStarHeuristic(const Model* model, const Graph& graph, const Vertex& goal) :
 			goal(goal),
 			graph(graph),
 			model(model)
@@ -274,7 +274,7 @@ namespace rl
 		::rl::math::Real
 		Prm::AStarHeuristic::operator()(Vertex u)
 		{
-			return this->model->transformedDistance(*this->graph[u].q, *this->graph[this->goal].q);
+			return this->model->distance(*this->graph[u].q, *this->graph[this->goal].q);
 		}
 	}
 }

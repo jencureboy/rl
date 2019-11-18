@@ -61,6 +61,9 @@ namespace rl
 			
 			static Spline<Quaternion> CubicFirst(const ::std::vector<Real>& x, const ::std::vector<Quaternion>& y, const Vector3& yd0, const Vector3& yd1)
 			{
+				using ::std::abs;
+				using ::std::atan2;
+				
 				assert(x.size() > 1);
 				assert(x.size() == y.size());
 				
@@ -75,16 +78,14 @@ namespace rl
 				for (::std::size_t i = 0; i < n - 1; ++i)
 				{
 					dx[i] = x[i + 1] - x[i];
-					dtheta[i] = y[i].angularDistance(y[i + 1]);
-					e[i] = (y[i].inverse() * y[i + 1]).vec();
+					Quaternion dy = y[i].conjugate() * y[i + 1];
+					Real norm = dy.vec().norm();
+					dtheta[i] = 2 * atan2(norm, abs(dy.w()));
+					e[i] = dy.vec();
 					
-					if (e[i].norm() <= ::std::numeric_limits<Real>::epsilon())
+					if (norm > 0)
 					{
-						e[i].setZero();
-					}
-					else
-					{
-						e[i].normalize();
+						e[i] /= norm;
 					}
 				}
 				
@@ -154,6 +155,66 @@ namespace rl
 					fi.coefficient(3) = e[i] * dtheta[i];
 					fi.upper() = dx[i];
 					fi.y0 = y[i];
+					f.push_back(fi);
+				}
+				
+				return f;
+			}
+			
+			static Spline<Quaternion> TrapezoidalAccelerationAtRest(const Quaternion& y0, const Quaternion& y1, const Vector3& vmax, const Vector3& amax, const Vector3& jmax)
+			{
+				using ::std::abs;
+				using ::std::atan2;
+				
+				Spline<Quaternion> f;
+				
+				Quaternion dy = y0.conjugate() * y1;
+				Real norm = dy.vec().norm();
+				Real dtheta = 2 * atan2(norm, abs(dy.w()));
+				Vector3 e = dy.vec();
+				
+				if (norm > 0)
+				{
+					e /= norm;
+				}
+				
+				Vector3 q0 = Vector3::Zero();
+				Vector3 q1 = e * dtheta;
+				
+				Spline<Vector3> f2 = Spline<Vector3>::TrapezoidalAccelerationAtRest(q0, q1, vmax, amax, jmax);
+				
+				for (::std::size_t i = 0; i < f2.size(); ++i)
+				{
+					Polynomial<Quaternion> fi(f2[i].degree());
+					
+					::rl::math::Real dx = f2[i].upper() - f2[i].lower();
+					::rl::math::Real dx2 = dx * dx;
+					::rl::math::Real dx3 = dx2 * dx;
+					
+					switch (f2[i].degree())
+					{
+					case 1:
+						fi.coefficient(0) = -f2[i].coefficient(0);
+						fi.coefficient(1) = f2[i].coefficient(0) + dx * f2[i].coefficient(1);
+						break;
+					case 2:
+						fi.coefficient(0) = f2[i].coefficient(0);
+						fi.coefficient(1) = -2 * f2[i].coefficient(0) - dx * f2[i].coefficient(1);
+						fi.coefficient(2) = f2[i].coefficient(0) + dx * f2[i].coefficient(1) + dx2 * f2[i].coefficient(2);
+						break;
+					case 3:
+						fi.coefficient(0) = -f2[i].coefficient(0);
+						fi.coefficient(1) = 3 * f2[i].coefficient(0) + dx * f2[i].coefficient(1);
+						fi.coefficient(2) = -3 * f2[i].coefficient(0) - 2 * dx * f2[i].coefficient(1) - dx2 * f2[i].coefficient(2);
+						fi.coefficient(3) = f2[i].coefficient(0) + dx * f2[i].coefficient(1) + dx2 * f2[i].coefficient(2) + dx3 * f2[i].coefficient(3);
+						break;
+					default:
+						break;
+					}
+					
+					fi.lower() = f2[i].lower();
+					fi.upper() = f2[i].upper();
+					fi.y0 = y0;
 					f.push_back(fi);
 				}
 				
@@ -233,7 +294,7 @@ namespace rl
 				
 				Real x0 = this->lower();
 				::std::size_t i = 0;
-
+				
 				for (; x > x0 + this->polynomials[i].duration() && i < this->polynomials.size(); ++i)
 				{
 					x0 += this->polynomials[i].duration();
@@ -308,7 +369,7 @@ namespace rl
 		private:
 			static Vector3 B(const Vector3& e, const Real& dtheta, const Vector3& x)
 			{
-				if (dtheta <= ::std::numeric_limits<Real>::epsilon())
+				if (dtheta < ::std::numeric_limits<Real>::epsilon())
 				{
 					return x;
 				}
@@ -321,7 +382,7 @@ namespace rl
 			
 			static Vector3 invB(const Vector3& e, const Real& dtheta, const Vector3& x)
 			{
-				if (dtheta <= ::std::numeric_limits<Real>::epsilon())
+				if (dtheta < ::std::numeric_limits<Real>::epsilon())
 				{
 					return x;
 				}
@@ -334,7 +395,7 @@ namespace rl
 			
 			static Vector3 R(const Vector3& e, const Real& dtheta, const Vector3& omega)
 			{
-				if (dtheta <= ::std::numeric_limits<Real>::epsilon())
+				if (dtheta < ::std::numeric_limits<Real>::epsilon())
 				{
 					return Vector3::Zero();
 				}

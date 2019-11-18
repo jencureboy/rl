@@ -68,15 +68,7 @@ namespace rl
 					
 					this->model->interpolate(u, v, static_cast< ::rl::math::Real>(midpoint) / static_cast< ::rl::math::Real>(steps), inter);
 					
-					if (!this->model->isValid(inter))
-					{
-						return true;
-					}
-					
-					this->model->setPosition(inter);
-					this->model->updateFrames();
-					
-					if (this->model->isColliding())
+					if (this->model->isColliding(inter))
 					{
 						return true;
 					}

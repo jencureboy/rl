@@ -75,13 +75,13 @@ namespace rl
 #ifdef ORIGINAL_VERSION
 					// Used in the paper: take the samples with the least collision probability
 					if (pFree > pBest)
-					{   
+					{
 						pBest = pFree;
 						bestSample = sample;
 					}
 #else
 					// This works better in our examples. Here we define entropy by using samples where we are unsure, if they are colliding.
-					if (::std::fabs(pFree - static_cast< ::rl::math::Real>(0.5)) < ::std::fabs(pBest - static_cast< ::rl::math::Real>(0.5)))
+					if (::std::abs(pFree - static_cast< ::rl::math::Real>(0.5)) < ::std::abs(pBest - static_cast< ::rl::math::Real>(0.5)))
 					{   
 						pBest = pFree;
 						bestSample = sample;
@@ -90,10 +90,7 @@ namespace rl
 				}
 				
 				// now do collision check
-				this->model->setPosition(bestSample.q);
-				this->model->updateFrames();
-				
-				if (!this->model->isColliding())
+				if (!this->model->isColliding(bestSample.q))
 				{
 					// store the sample in the graph
 					bestSample.isColliding = false;

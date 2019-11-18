@@ -61,15 +61,9 @@ main(int argc, char** argv)
 			qdd(i) = boost::lexical_cast<rl::math::Real>(argv[i + 2 + dynamic->getDofPosition() + dynamic->getDof()]);
 		}
 		
-		rl::math::Vector g(3);
-		dynamic->getWorldGravity(g);
-		
-		rl::math::Vector tmp(dynamic->getDof());
-		rl::math::Vector tmp2(6 * dynamic->getOperationalDof());
-		
 		std::cout << "===============================================================================" << std::endl;
 		
-		// FP
+		// forward position
 		
 		dynamic->setPosition(q);
 		dynamic->forwardPosition();
@@ -79,7 +73,7 @@ main(int argc, char** argv)
 		
 		std::cout << "===============================================================================" << std::endl;
 		
-		// FV
+		// forward velocity
 		
 		dynamic->setPosition(q);
 		dynamic->setVelocity(qd);
@@ -91,28 +85,32 @@ main(int argc, char** argv)
 		// J
 		
 		rl::math::Matrix J(6 * dynamic->getOperationalDof(), dynamic->getDof());
-		dynamic->calculateJacobian(J);
+		dynamic->calculateJacobian(J, false);
 		std::cout << "J = " << std::endl << J << std::endl;
 		
 		// J * qd
 		
-		tmp2 = J * qd;
-		std::cout << "xd = " << tmp2.transpose() << std::endl;
+		rl::math::Vector Jqd = J * qd;
+		std::cout << "xd = J * qd = " << Jqd.transpose() << std::endl;
 		
-		// invJ
+		// J^{-1}
 		
 		rl::math::Matrix invJ(dynamic->getDof(), 6 * dynamic->getOperationalDof());
 		dynamic->calculateJacobianInverse(J, invJ);
 		std::cout << "J^{-1} = " << std::endl << invJ << std::endl;
 		
+		// J^{-1} * xd
+		
+		rl::math::Vector invJxd = invJ * Jqd;
+		std::cout << "qd = J^{-1} * xd = " << invJxd.transpose() << std::endl;
+		
 		std::cout << "===============================================================================" << std::endl;
 		
-		// FA
+		// forward acceleration
 		
 		dynamic->setPosition(q);
 		dynamic->setVelocity(qd);
 		dynamic->setAcceleration(qdd);
-		dynamic->setWorldGravity(g);
 		dynamic->forwardVelocity();
 		dynamic->forwardAcceleration();
 		std::cout << "xdd = " << dynamic->getOperationalAcceleration(0).linear().transpose() << " " << dynamic->getOperationalAcceleration(0).angular().transpose() << std::endl;
@@ -122,17 +120,22 @@ main(int argc, char** argv)
 		// Jd * qd
 		
 		rl::math::Vector Jdqd(6 * dynamic->getOperationalDof());
-		dynamic->calculateJacobianDerivative(Jdqd);
-		std::cout << "Jd*qd = " << Jdqd.transpose() << std::endl;
+		dynamic->calculateJacobianDerivative(Jdqd, false);
+		std::cout << "Jd * qd = " << Jdqd.transpose() << std::endl;
 		
-		// J * qdd + Jd * qd 
+		// J * qdd + Jd * qd
 		
-		tmp2 = J * qdd + Jdqd;
-		std::cout << "xdd = " << tmp2.transpose() << std::endl;
+		rl::math::Vector JqddJdqd = J * qdd + Jdqd;
+		std::cout << "xdd = J * qdd + Jd * qd = " << JqddJdqd.transpose() << std::endl;
+		
+		// J^{-1} * (xdd - Jd * qd)
+		
+		rl::math::Vector invJxddJdqd = invJ * (JqddJdqd - Jdqd);
+		std::cout << "qdd = J^{-1} * (xdd - Jd * qd) = " << invJxddJdqd.transpose() << std::endl;
 		
 		std::cout << "===============================================================================" << std::endl;
 		
-		// RNE
+		// inverse dynamics
 		
 		dynamic->setPosition(q);
 		dynamic->setVelocity(qd);
@@ -163,18 +166,17 @@ main(int argc, char** argv)
 		
 		rl::math::Vector G(dynamic->getDof());
 		dynamic->setPosition(q);
-		dynamic->setWorldGravity(g);
 		dynamic->calculateGravity(G);
 		std::cout << "G = " << G.transpose() << std::endl;
 		
 		// M * qdd + V + G
 		
-		tmp = M * qdd + V + G;
-		std::cout << "tau = " << tmp.transpose() << std::endl;
+		rl::math::Vector MqddVG = M * qdd + V + G;
+		std::cout << "tau = M * qdd + V + G = " << MqddVG.transpose() << std::endl;
 		
 		std::cout << "===============================================================================" << std::endl;
 		
-		// FD
+		// forward dynamics
 		
 		dynamic->setPosition(q);
 		dynamic->setVelocity(qd);
@@ -199,10 +201,10 @@ main(int argc, char** argv)
 		
 		std::cout << "G = " << G.transpose() << std::endl;
 		
-		// M^{-1} * ( tau - V - G )
+		// M^{-1} * (tau - V - G)
 		
-		tmp = invM * (tau - V - G);
-		std::cout << "qdd = " << tmp.transpose() << std::endl;
+		rl::math::Vector invMtauVG = invM * (tau - V - G);
+		std::cout << "qdd = M^{-1} * (tau - V - G) = " << invMtauVG.transpose() << std::endl;
 		
 		std::cout << "===============================================================================" << std::endl;
 	}

@@ -24,47 +24,22 @@
 // POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include "Joint.h"
+#ifndef RL_STD_CMATH
+#define RL_STD_CMATH
 
-namespace rl
+#ifdef _MSC_VER
+#include <../include/cmath>
+
+#if _MSC_VER < 1800
+#include <boost/math/special_functions/cbrt.hpp>
+
+namespace std
 {
-	namespace kin
-	{
-		Joint::Joint() :
-			Transform(),
-			a(0),
-			alpha(0),
-			d(0),
-			leaves(),
-			max(0),
-			min(0),
-			offset(0),
-			speed(0),
-			theta(0),
-			wraparound(false),
-			q(0)
-		{
-		}
-		
-		Joint::~Joint()
-		{
-		}
-		
-		::rl::math::Real
-		Joint::getPosition() const
-		{
-			return this->q;
-		}
-		
-		void
-		Joint::normalize(::rl::math::Real& q)
-		{
-		}
-		
-		void
-		Joint::setPosition(const ::rl::math::Real& q)
-		{
-			this->q = q;
-		}
-	}
+	using ::boost::math::cbrt;
 }
+#endif // _MSC_VER < 1800
+#else // _MSC_VER
+#include_next <cmath>
+#endif // _MSC_VER
+
+#endif // RL_STD_CMATH

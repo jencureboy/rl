@@ -89,6 +89,11 @@ namespace rl
 			
 			::rl::xml::NodeSet models = path.eval("(/rl/mdl|/rlmdl)/model").getValue< ::rl::xml::NodeSet>();
 			
+			if (models.empty())
+			{
+				throw Exception("rl::mdl::XmlFactory::load() - No models found in file " + filename);
+			}
+			
 			for (int i = 0; i < ::std::min(1, models.size()); ++i)
 			{
 				::rl::xml::Path path(document, models[i]);
@@ -170,9 +175,11 @@ namespace rl
 						w->x.translation().z() = path.eval("number(translation/z)").getValue< ::rl::math::Real>(0);
 						
 						w->setGravity(
-							path.eval("number(g/x)").getValue< ::rl::math::Real>(0),
-							path.eval("number(g/y)").getValue< ::rl::math::Real>(0),
-							path.eval("number(g/z)").getValue< ::rl::math::Real>(0)
+							::rl::math::Vector3(
+								path.eval("number(g/x)").getValue< ::rl::math::Real>(0),
+								path.eval("number(g/y)").getValue< ::rl::math::Real>(0),
+								path.eval("number(g/z)").getValue< ::rl::math::Real>(0)
+							)
 						);
 						
 						frame = w;
